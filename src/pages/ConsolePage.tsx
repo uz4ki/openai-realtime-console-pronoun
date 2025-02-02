@@ -124,6 +124,38 @@ export function ConsolePage() {
     lng: -122.418137,
   });
   const [marker, setMarker] = useState<Coordinates | null>(null);
+  // 既存のuseStateに追加
+  const [selectedVoice, setSelectedVoice] = useState<"alloy"|"ash"|"ballad"|"coral"|"echo"|"sage"|"shimmer"|"verse">('alloy');
+  const [selectedPronoun, setSelectedPronoun] = useState<"私"|"わたし"|"あたし"|"ぼく"|"おれ"|"わたくし"|"あたくし"|"うち"|"じぶん"|"わし">('私');
+
+  // voice変更用の関数
+  const handleVoiceChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newVoice = event.target.value as "alloy"|"ash"|"ballad"|"coral"|"echo"|"sage"|"shimmer"|"verse";
+    setSelectedVoice(newVoice);
+
+    const client = clientRef.current;
+    client.updateSession({ voice: newVoice });
+
+    console.log(`選択された音声: ${newVoice}`);
+  };
+
+  // pronoun変更用の関数
+  const handlePronounChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newPronoun = event.target.value as "私"|"わたし"|"あたし"|"ぼく"|"おれ"|"わたくし"|"あたくし"|"うち"|"じぶん"|"わし";
+    console.log(`instructions: ${newPronoun}`);
+    setSelectedPronoun(newPronoun);
+
+    const client = clientRef.current;
+    const text =  instructionText(newPronoun);
+    client.updateSession({ instructions: text });
+
+    console.log(`instructions: ${text}`);
+  };
+
+  const instructionText = useCallback((pronoun: string) => {
+    return  `${instructions}- Your first person person is ${pronoun}.
+    `;
+  }, []);
 
   /**
    * Utility for formatting the timing of logs
@@ -377,7 +409,7 @@ export function ConsolePage() {
     const client = clientRef.current;
 
     // Set instructions
-    client.updateSession({ instructions: instructions });
+    client.updateSession({ instructions: instructionText(selectedPronoun) });
     // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
 
@@ -663,6 +695,46 @@ export function ConsolePage() {
             </div>
           </div>
           <div className="content-actions">
+            {/* 既存のトグルやボタンの上に追加 */}
+            <div className="voice-selector">
+              <label htmlFor="voiceSelect">音声</label>
+              <select
+                id="voiceSelect"
+                value={selectedVoice}
+                onChange={handleVoiceChange}
+                className="voice-dropdown"
+              >
+                <option value="alloy">Alloy</option>
+                <option value="ash">Ash</option>
+                <option value="balled">Balled</option>
+                <option value="coral">Coral</option>
+                <option value="echo">Echo</option>
+                <option value="sage">Sage</option>
+                <option value="shimmer">Shimmer</option>
+                <option value="verse">Verse</option>
+              </select>
+            </div>
+            <div className="voice-selector">
+              <label htmlFor="voiceSelect">1人称</label>
+              <select
+                id="pronounSelect"
+                value={selectedPronoun}
+                onChange={handlePronounChange}
+                className="voice-dropdown"
+              >
+                <option value="私">私</option>
+                <option value="わたし">わたし</option>
+                <option value="あたし">あたし</option>
+                <option value="ぼく">ぼく</option>
+                <option value="おれ">おれ</option>
+                <option value="わたくし">わたくし</option>
+                <option value="あたくし">あたくし</option>
+                <option value="うち">うち</option>
+                <option value="じぶん">じぶん</option>
+                <option value="わし">わし</option>
+              </select>
+            </div>
+            {/* 既存のコンテンツ（マニュアル/自動切り替えトグルや録音ボタン） */}
             <Toggle
               defaultValue={false}
               labels={['manual', 'vad']}
@@ -689,40 +761,6 @@ export function ConsolePage() {
                 isConnected ? disconnectConversation : connectConversation
               }
             />
-          </div>
-        </div>
-        <div className="content-right">
-          <div className="content-block map">
-            <div className="content-block-title">get_weather()</div>
-            <div className="content-block-title bottom">
-              {marker?.location || 'not yet retrieved'}
-              {!!marker?.temperature && (
-                <>
-                  <br />
-                  🌡️ {marker.temperature.value} {marker.temperature.units}
-                </>
-              )}
-              {!!marker?.wind_speed && (
-                <>
-                  {' '}
-                  🍃 {marker.wind_speed.value} {marker.wind_speed.units}
-                </>
-              )}
-            </div>
-            <div className="content-block-body full">
-              {coords && (
-                <Map
-                  center={[coords.lat, coords.lng]}
-                  location={coords.location}
-                />
-              )}
-            </div>
-          </div>
-          <div className="content-block kv">
-            <div className="content-block-title">set_memory()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(memoryKv, null, 2)}
-            </div>
           </div>
         </div>
       </div>

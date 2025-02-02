@@ -146,6 +146,24 @@
     }
   }
 
+  .voice-selector {
+    display: flex;
+  
+    label {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+  
+    select.voice-dropdown {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  }
+  
+
   .conversation-item {
     position: relative;
     display: flex;
